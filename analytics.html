@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthTrack Analytics</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="analytics-layout">
+    <aside class="analytics-sidebar">
+      <div class="analytics-brand">
+        <div class="analytics-brand-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+
+        <div class="analytics-brand-text">
+          <h2>HealthTrack</h2>
+          <p>Health Monitoring</p>
+        </div>
+      </div>
+
+      <nav class="analytics-nav">
+        <a href="index.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">⌂</span>
+          <span>Home</span>
+        </a>
+
+        <a href="profile.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">◌</span>
+          <span>Profile</span>
+        </a>
+
+        <a href="dashboard.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">⌘</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="log-activity.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">∿</span>
+          <span>Log Activity</span>
+        </a>
+
+        <a href="history.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">◔</span>
+          <span>History</span>
+        </a>
+
+        <a href="recommendations.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">▤</span>
+          <span>Recommendations</span>
+        </a>
+
+        <a href="analytics.html" class="analytics-nav-link active">
+          <span class="analytics-nav-icon">▥</span>
+          <span>Analytics</span>
+        </a>
+
+        <a href="about.html" class="analytics-nav-link">
+          <span class="analytics-nav-icon">i</span>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <div class="analytics-user-box">
+        <div class="analytics-user-avatar" id="analyticsUserAvatar">U</div>
+        <div>
+          <h3 id="analyticsUserName">User</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="analytics-main">
+      <section class="analytics-page-head">
+        <h1>Analytics &amp; Charts</h1>
+        <p>Visualize your health data trends over time</p>
+      </section>
+
+      <section class="analytics-chart-card wide-card">
+        <div class="analytics-card-head">
+          <div class="analytics-card-head-left">
+            <div class="analytics-head-icon blue">∿</div>
+            <div>
+              <h2>Steps Over Time</h2>
+              <p>Daily step count trend</p>
+            </div>
+          </div>
+        </div>
+        <div class="line-chart-box">
+          <svg id="stepsChartSvg" class="line-chart-svg"></svg>
+        </div>
+        <div class="analytics-chart-legend blue-text">— steps</div>
+      </section>
+
+      <section class="analytics-chart-card wide-card">
+        <div class="analytics-card-head">
+          <div class="analytics-card-head-left">
+            <div class="analytics-head-icon red">♡</div>
+            <div>
+              <h2>Heart Rate Over Time</h2>
+              <p>Average daily heart rate trend</p>
+            </div>
+          </div>
+        </div>
+        <div class="line-chart-box">
+          <svg id="heartChartSvg" class="line-chart-svg"></svg>
+        </div>
+        <div class="analytics-chart-legend red-text">— heartRate</div>
+      </section>
+
+      <section class="analytics-two-col">
+        <section class="analytics-chart-card small-card">
+          <div class="analytics-card-head">
+            <div class="analytics-card-head-left">
+              <div class="analytics-head-icon yellow">◔</div>
+              <div>
+                <h2>Calories Burned</h2>
+                <p>Daily calorie expenditure</p>
+              </div>
+            </div>
+          </div>
+          <div class="line-chart-box small-line-box">
+            <svg id="caloriesChartSvg" class="line-chart-svg"></svg>
+          </div>
+        </section>
+
+        <section class="analytics-chart-card small-card">
+          <div class="analytics-card-head">
+            <div class="analytics-card-head-left">
+              <div class="analytics-head-icon green">⚖</div>
+              <div>
+                <h2>BMI Trend</h2>
+                <p>Body Mass Index over time</p>
+              </div>
+            </div>
+          </div>
+          <div class="line-chart-box small-line-box">
+            <svg id="bmiChartSvg" class="line-chart-svg"></svg>
+          </div>
+        </section>
+      </section>
+
+      <section class="analytics-two-col">
+        <section class="analytics-chart-card small-card">
+          <div class="analytics-card-head">
+            <div>
+              <h2>BMI Distribution</h2>
+              <p>Classification breakdown</p>
+            </div>
+          </div>
+          <div class="analytics-pie-wrap">
+            <div class="analytics-pie-chart" id="bmiPieChart"></div>
+            <div class="analytics-pie-label" id="bmiPieLabel">Normal Weight: 0%</div>
+          </div>
+        </section>
+
+        <section class="analytics-chart-card small-card">
+          <div class="analytics-card-head">
+            <div>
+              <h2>Steps by Intensity</h2>
+              <p>Total steps for each activity level</p>
+            </div>
+          </div>
+          <div class="bar-chart-box">
+            <svg id="intensityBarSvg" class="line-chart-svg"></svg>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthTrack Log Activity</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="activity-layout">
+    <aside class="activity-sidebar">
+      <div class="activity-brand">
+        <div class="activity-brand-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+
+        <div class="activity-brand-text">
+          <h2>HealthTrack</h2>
+          <p>Health Monitoring</p>
+        </div>
+      </div>
+
+      <nav class="activity-nav">
+        <a href="index.html" class="activity-nav-link">
+          <span class="activity-nav-icon">⌂</span>
+          <span>Home</span>
+        </a>
+
+        <a href="profile.html" class="activity-nav-link">
+          <span class="activity-nav-icon">◌</span>
+          <span>Profile</span>
+        </a>
+
+        <a href="dashboard.html" class="activity-nav-link">
+          <span class="activity-nav-icon">⌘</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="log-activity.html" class="activity-nav-link active">
+          <span class="activity-nav-icon">∿</span>
+          <span>Log Activity</span>
+        </a>
+
+        <a href="history.html" class="activity-nav-link">
+          <span class="activity-nav-icon">◔</span>
+          <span>History</span>
+        </a>
+
+        <a href="recommendations.html" class="activity-nav-link">
+          <span class="activity-nav-icon">▤</span>
+          <span>Recommendations</span>
+        </a>
+
+        <a href="analytics.html" class="activity-nav-link">
+          <span class="activity-nav-icon">▥</span>
+          <span>Analytics</span>
+        </a>
+
+        <a href="about.html" class="activity-nav-link">
+          <span class="activity-nav-icon">i</span>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <div class="activity-user-box">
+        <div class="activity-user-avatar" id="activityUserAvatar">U</div>
+        <div>
+          <h3 id="activityUserName">User</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="activity-main">
+      <section class="activity-page-head">
+        <h1>Log Today's Activity</h1>
+        <p>Select your intensity, complete your workout, and track your progress</p>
+      </section>
+
+      <section class="activity-card">
+        <h2>Select Activity Intensity</h2>
+
+        <div class="intensity-grid">
+          <button class="intensity-option intensity-low active" data-intensity="low" type="button">
+            <span class="intensity-title">Low Intensity</span>
+            <span class="intensity-text">Light walking, stretching, yoga</span>
+          </button>
+
+          <button class="intensity-option intensity-moderate" data-intensity="moderate" type="button">
+            <span class="intensity-title">Moderate Intensity</span>
+            <span class="intensity-text">Brisk walking, light jogging, cycling</span>
+          </button>
+
+          <button class="intensity-option intensity-high" data-intensity="high" type="button">
+            <span class="intensity-title">High Intensity</span>
+            <span class="intensity-text">Running, HIIT, sports, intense cardio</span>
+          </button>
+        </div>
+
+        <button id="generateWorkoutBtn" class="generate-workout-btn" type="button">
+          Generate My Workout
+        </button>
+      </section>
+
+      <section class="activity-card workout-card hidden" id="workoutCard">
+        <div class="workout-head">
+          <div class="workout-head-left">
+            <div class="workout-icon">🏋</div>
+            <div>
+              <h2>Your Workout Routine</h2>
+              <p>Complete all exercises to log your activity</p>
+            </div>
+          </div>
+
+          <div class="workout-progress-badge" id="workoutProgressBadge">0%</div>
+        </div>
+
+        <div class="exercise-list" id="exerciseList"></div>
+
+        <div class="workout-actions">
+          <button id="completeWorkoutBtn" class="complete-workout-btn disabled" type="button">
+            Complete All Exercises First
+          </button>
+
+          <button id="resetWorkoutBtn" class="reset-workout-btn" type="button">
+            Reset
+          </button>
+        </div>
+
+        <div class="workout-warning" id="workoutWarning">
+          You must complete all exercises before logging your activity
+        </div>
+      </section>
+
+      <section class="activity-success-card hidden" id="activitySuccessCard">
+        <div class="activity-success-icon">✓</div>
+        <div>
+          <h2>Workout Completed! 🎉</h2>
+          <p>Great job finishing your workout session</p>
+        </div>
+      </section>
+
+      <section class="activity-results-card hidden" id="activityResultsCard">
+        <h2>Today's Activity Results</h2>
+
+        <div class="activity-results-grid">
+          <div class="result-box">
+            <div class="result-icon blue">∿</div>
+            <div class="result-meta">
+              <p>Steps</p>
+              <h3 id="resultSteps">0</h3>
+            </div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-icon red">♡</div>
+            <div class="result-meta">
+              <p>Heart Rate</p>
+              <h3><span id="resultHeartRate">0</span> <small>bpm</small></h3>
+            </div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-icon yellow">◔</div>
+            <div class="result-meta">
+              <p>Calories</p>
+              <h3 id="resultCalories">0</h3>
+            </div>
+          </div>
+
+          <div class="result-box">
+            <div class="result-icon green">⚖</div>
+            <div class="result-meta">
+              <p>BMI</p>
+              <h3 id="resultBMI">--</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-intensity-line">
+          Intensity Level:
+          <span id="resultIntensityBadge" class="result-intensity-badge">LOW</span>
+        </div>
+      </section>
+
+      <section class="activity-feedback-card hidden" id="activityFeedbackCard">
+        <h2>Activity Feedback</h2>
+
+        <p id="activityFeedbackText">
+          Nice low-intensity movement! Light activity is important for recovery and maintaining mobility.
+        </p>
+
+        <div class="activity-feedback-stats">
+          <div>
+            <p>Distance Covered</p>
+            <h3 id="resultDistance">0.0 km</h3>
+          </div>
+
+          <div>
+            <p>Exercises Completed</p>
+            <h3 id="resultExercisesCompleted">0 exercises</h3>
+          </div>
+        </div>
+      </section>
+
+      <button id="startAnotherWorkoutBtn" class="start-another-btn hidden" type="button">
+        Start Another Workout
+      </button>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthTrack History</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="history-layout">
+    <aside class="history-sidebar">
+      <div class="history-brand">
+        <div class="history-brand-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+
+        <div class="history-brand-text">
+          <h2>HealthTrack</h2>
+          <p>Health Monitoring</p>
+        </div>
+      </div>
+
+      <nav class="history-nav">
+        <a href="index.html" class="history-nav-link">
+          <span class="history-nav-icon">⌂</span>
+          <span>Home</span>
+        </a>
+
+        <a href="profile.html" class="history-nav-link">
+          <span class="history-nav-icon">◌</span>
+          <span>Profile</span>
+        </a>
+
+        <a href="dashboard.html" class="history-nav-link">
+          <span class="history-nav-icon">⌘</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="log-activity.html" class="history-nav-link">
+          <span class="history-nav-icon">∿</span>
+          <span>Log Activity</span>
+        </a>
+
+        <a href="history.html" class="history-nav-link active">
+          <span class="history-nav-icon">◔</span>
+          <span>History</span>
+        </a>
+
+        <a href="recommendations.html" class="history-nav-link">
+          <span class="history-nav-icon">▤</span>
+          <span>Recommendations</span>
+        </a>
+
+        <a href="analytics.html" class="history-nav-link">
+          <span class="history-nav-icon">▥</span>
+          <span>Analytics</span>
+        </a>
+
+        <a href="about.html" class="history-nav-link">
+          <span class="history-nav-icon">i</span>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <div class="history-user-box">
+        <div class="history-user-avatar" id="historyUserAvatar">U</div>
+        <div>
+          <h3 id="historyUserName">User</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="history-main">
+      <section class="history-page-head">
+        <h1>14-Day Activity History</h1>
+        <p>Track your progress over the past two weeks</p>
+      </section>
+
+      <section class="history-stats-card">
+        <div class="history-card-head">
+          <span class="history-head-icon">↗</span>
+          <h2>Average Statistics</h2>
+        </div>
+
+        <div class="history-stats-grid">
+          <div class="history-stat-box">
+            <div class="history-stat-top">
+              <span class="history-stat-icon blue">∿</span>
+              <span class="history-stat-label">Avg Steps</span>
+            </div>
+            <h3 id="historyAvgSteps">0</h3>
+          </div>
+
+          <div class="history-stat-box">
+            <div class="history-stat-top">
+              <span class="history-stat-icon red">♡</span>
+              <span class="history-stat-label">Avg Heart Rate</span>
+            </div>
+            <h3><span id="historyAvgHeartRate">0</span> <small>bpm</small></h3>
+          </div>
+
+          <div class="history-stat-box">
+            <div class="history-stat-top">
+              <span class="history-stat-icon yellow">◔</span>
+              <span class="history-stat-label">Avg Calories</span>
+            </div>
+            <h3 id="historyAvgCalories">0</h3>
+          </div>
+
+          <div class="history-stat-box">
+            <div class="history-stat-top">
+              <span class="history-stat-icon green">⚖</span>
+              <span class="history-stat-label">Avg BMI</span>
+            </div>
+            <h3 id="historyAvgBMI">0</h3>
+          </div>
+        </div>
+      </section>
+
+      <section class="history-log-card">
+        <div class="history-card-head">
+          <span class="history-head-icon">🗓</span>
+          <h2>Activity Log</h2>
+        </div>
+
+        <div id="historyEmptyState" class="history-empty-state">
+          <div class="history-empty-icon">🗓</div>
+          <h3>No activity history yet</h3>
+          <p>Start logging your activities to see your progress over time</p>
+        </div>
+
+        <div id="historyLogList" class="history-log-list hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

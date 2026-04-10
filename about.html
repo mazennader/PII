@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthTrack About</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="about-layout">
+    <aside class="about-sidebar">
+      <div class="about-brand">
+        <div class="about-brand-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+
+        <div class="about-brand-text">
+          <h2>HealthTrack</h2>
+          <p>Health Monitoring</p>
+        </div>
+      </div>
+
+      <nav class="about-nav">
+        <a href="index.html" class="about-nav-link">
+          <span class="about-nav-icon">⌂</span>
+          <span>Home</span>
+        </a>
+
+        <a href="profile.html" class="about-nav-link">
+          <span class="about-nav-icon">◌</span>
+          <span>Profile</span>
+        </a>
+
+        <a href="dashboard.html" class="about-nav-link">
+          <span class="about-nav-icon">⌘</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="log-activity.html" class="about-nav-link">
+          <span class="about-nav-icon">∿</span>
+          <span>Log Activity</span>
+        </a>
+
+        <a href="history.html" class="about-nav-link">
+          <span class="about-nav-icon">◔</span>
+          <span>History</span>
+        </a>
+
+        <a href="recommendations.html" class="about-nav-link">
+          <span class="about-nav-icon">▤</span>
+          <span>Recommendations</span>
+        </a>
+
+        <a href="analytics.html" class="about-nav-link">
+          <span class="about-nav-icon">▥</span>
+          <span>Analytics</span>
+        </a>
+
+        <a href="about.html" class="about-nav-link active">
+          <span class="about-nav-icon">i</span>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <div class="about-user-box">
+        <div class="about-user-avatar" id="aboutUserAvatar">U</div>
+        <div>
+          <h3 id="aboutUserName">Guest</h3>
+          <p>Active User</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="about-main">
+      <section class="about-hero">
+        <div class="about-badge">
+          <span>❤</span>
+          <span>University Engineering Project</span>
+        </div>
+
+        <h1>About HealthTrack</h1>
+
+        <p class="about-hero-text">
+          A comprehensive digital health monitoring platform developed as an engineering
+          initiation project to demonstrate practical application of web development and
+          health informatics principles.
+        </p>
+      </section>
+
+      <section class="about-overview-card">
+        <h2>Project Overview</h2>
+
+        <p>
+          HealthTrack is a functional prototype designed to simulate a health tracking system
+          for educational purposes. The application demonstrates the integration of user input,
+          data processing, visualization, and personalized recommendations in a clean, modern interface.
+        </p>
+
+        <p>
+          This project showcases key concepts in web application development, including state management,
+          data persistence, responsive interface structure, and interactive data visualization. All health
+          metrics are simulated based on user inputs and intensity selections.
+        </p>
+      </section>
+
+      <section class="about-section-title">
+        <h2>Development Phases</h2>
+      </section>
+
+      <section class="about-phase-grid">
+        <article class="about-phase-card">
+          <div class="about-phase-head">
+            <div class="about-phase-icon blue">◫</div>
+            <div>
+              <h3>Theoretical Study</h3>
+              <p>Research and understanding of health metrics</p>
+            </div>
+          </div>
+
+          <ul class="about-list blue-bullets">
+            <li>Study of BMI calculation and interpretation</li>
+            <li>Understanding heart rate zones and cardiovascular health</li>
+            <li>Research on calorie expenditure and activity levels</li>
+            <li>Analysis of recommended daily activity guidelines</li>
+          </ul>
+        </article>
+
+        <article class="about-phase-card">
+          <div class="about-phase-head">
+            <div class="about-phase-icon green">◉</div>
+            <div>
+              <h3>Data Simulation</h3>
+              <p>Creating realistic health data models</p>
+            </div>
+          </div>
+
+          <ul class="about-list blue-bullets">
+            <li>Algorithm design for simulating activity patterns</li>
+            <li>Heart rate calculation based on intensity levels</li>
+            <li>Calorie burn estimation formulas</li>
+            <li>BMI tracking and categorization logic</li>
+          </ul>
+        </article>
+
+        <article class="about-phase-card">
+          <div class="about-phase-head">
+            <div class="about-phase-icon yellow">&lt;/&gt;</div>
+            <div>
+              <h3>Practical Implementation</h3>
+              <p>Building the web application</p>
+            </div>
+          </div>
+
+          <ul class="about-list blue-bullets">
+            <li>Frontend development with HTML, CSS, and JavaScript</li>
+            <li>User interface design with modern component structure</li>
+            <li>Data visualization with interactive charts</li>
+            <li>Local storage for temporary data persistence</li>
+          </ul>
+        </article>
+
+        <article class="about-phase-card">
+          <div class="about-phase-head">
+            <div class="about-phase-icon red">!</div>
+            <div>
+              <h3>Testing and Validation</h3>
+              <p>Ensuring accuracy and usability</p>
+            </div>
+          </div>
+
+          <ul class="about-list blue-bullets">
+            <li>BMI calculation accuracy verification</li>
+            <li>User interface responsiveness testing</li>
+            <li>Data consistency and storage validation</li>
+            <li>Cross-browser compatibility checks</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="about-section-title">
+        <h2>Key Features</h2>
+      </section>
+
+      <section class="about-feature-grid">
+        <article class="about-feature-card">
+          <div class="about-feature-icon">◌</div>
+          <h3>User Profile Management</h3>
+          <p>Create and manage personal health profiles with age, weight, and height tracking</p>
+        </article>
+
+        <article class="about-feature-card">
+          <div class="about-feature-icon">◎</div>
+          <h3>Activity Tracking</h3>
+          <p>Monitor daily steps, heart rate, calories burned, and BMI with intensity-based logging</p>
+        </article>
+
+        <article class="about-feature-card">
+          <div class="about-feature-icon">♡</div>
+          <h3>Health Analytics</h3>
+          <p>Visualize trends with interactive charts and comprehensive 14-day history tracking</p>
+        </article>
+
+        <article class="about-feature-card">
+          <div class="about-feature-icon">⬒</div>
+          <h3>Personalized Recommendations</h3>
+          <p>Get customized training plans based on age and BMI for optimal health goals</p>
+        </article>
+      </section>
+
+      <section class="about-tech-card">
+        <h2>Technologies Used</h2>
+
+        <div class="about-tech-tags">
+          <span>HTML5</span>
+          <span>CSS3</span>
+          <span>JavaScript</span>
+          <span>LocalStorage API</span>
+          <span>SVG Charts</span>
+          <span>Responsive Layout</span>
+        </div>
+      </section>
+
+      <section class="about-two-col">
+        <article class="about-info-card">
+          <h2>System Capabilities</h2>
+          <ul class="about-list green-bullets">
+            <li>BMI calculation and categorization</li>
+            <li>Intensity-based activity simulation</li>
+            <li>14-day historical data tracking</li>
+            <li>Interactive data visualizations</li>
+            <li>Personalized training recommendations</li>
+          </ul>
+        </article>
+
+        <article class="about-info-card">
+          <h2>Learning Outcomes</h2>
+          <ul class="about-list blue-bullets">
+            <li>Frontend web development skills</li>
+            <li>Data visualization techniques</li>
+            <li>State management and persistence</li>
+            <li>Responsive UI/UX design</li>
+            <li>Health informatics concepts</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="about-team-card">
+        <div class="about-team-badge">🎓 Academic Project</div>
+        <h2>Project Title</h2>
+        <h3>HealthTrack - Digital Health Monitoring Platform</h3>
+
+        <h2 class="team-heading">Development Team</h2>
+
+        <div class="about-team-grid">
+          <article class="about-member-card">
+            <div class="about-member-icon">◌✓</div>
+            <h4>Team Member 1</h4>
+            <p>Project Lead &amp; Frontend Developer</p>
+          </article>
+
+          <article class="about-member-card">
+            <div class="about-member-icon">◌✓</div>
+            <h4>Team Member 2</h4>
+            <p>UI/UX Designer</p>
+          </article>
+
+          <article class="about-member-card">
+            <div class="about-member-icon">◌✓</div>
+            <h4>Team Member 3</h4>
+            <p>Backend Developer</p>
+          </article>
+
+          <article class="about-member-card">
+            <div class="about-member-icon">◌✓</div>
+            <h4>Team Member 4</h4>
+            <p>Data Analyst</p>
+          </article>
+          <article class="about-member-card">
+            <div class="about-member-icon">◌✓</div>
+            <h4>Team Member 5</h4>
+            <p>ma baarif zineh</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="about-disclaimer-card">
+        <p>
+          This platform is an educational prototype and does not replace professional medical advice.
+          Health metrics shown in this application are simulated for project demonstration purposes.
+        </p>
+      </section>
+
+      <footer class="about-footer">
+        <div class="about-footer-brand">❤ HealthTrack</div>
+        <p>Projet d'Initiation à l'Ingenierie PII © 2026</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
