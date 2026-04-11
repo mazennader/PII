@@ -1,4 +1,134 @@
 /* =========================
+   SUPABASE ANONYMOUS USER
+========================= */
+async function ensureAnonymousUser() {
+  const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+
+  if (sessionError) {
+    console.error("Session error:", sessionError);
+    return null;
+  }
+
+  if (sessionData.session && sessionData.session.user) {
+    return sessionData.session.user;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInAnonymously();
+
+  if (error) {
+    console.error("Anonymous sign-in error:", error);
+    return null;
+  }
+
+  return data.user;
+}
+
+async function saveProfileToSupabase(profileData) {
+  const user = await ensureAnonymousUser();
+  if (!user) return false;
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .upsert({
+      id: user.id,
+      full_name: profileData.fullName,
+      age: profileData.age,
+      weight_kg: profileData.weight,
+      height_cm: profileData.height,
+      bmi: profileData.bmi
+    });
+
+  if (error) {
+    console.error("Profile save error:", error);
+    return false;
+  }
+
+  return true;
+}
+
+async function loadProfileFromSupabase() {
+  const user = await ensureAnonymousUser();
+  if (!user) return null;
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Profile load error:", error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    fullName: data.full_name || "",
+    age: data.age || "",
+    weight: data.weight_kg || "",
+    height: data.height_cm || "",
+    bmi: data.bmi || null
+  };
+}
+
+async function saveActivityToSupabase(activityData) {
+  const user = await ensureAnonymousUser();
+  if (!user) return false;
+
+  const { error } = await supabaseClient
+    .from("activity_logs")
+    .insert({
+      user_id: user.id,
+      activity_date: activityData.activityDate,
+      intensity: activityData.intensity,
+      steps: activityData.steps,
+      heart_rate: activityData.heartRate,
+      calories: activityData.calories,
+      bmi: activityData.bmi,
+      distance_km: activityData.distanceKm,
+      exercises_completed: activityData.exercisesCompleted,
+      feedback: activityData.feedback
+    });
+
+  if (error) {
+    console.error("Activity save error:", error);
+    return false;
+  }
+
+  return true;
+}
+
+async function loadActivityHistoryFromSupabase() {
+  const user = await ensureAnonymousUser();
+  if (!user) return [];
+
+  const { data, error } = await supabaseClient
+    .from("activity_logs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("activity_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Activity history load error:", error);
+    return [];
+  }
+
+  return (data || []).map((item) => ({
+    date: item.activity_date,
+    intensity: item.intensity,
+    steps: item.steps,
+    heartRate: item.heart_rate,
+    calories: item.calories,
+    bmi: item.bmi,
+    distance: item.distance_km,
+    exercisesCompleted: item.exercises_completed,
+    feedback: item.feedback
+  }));
+}
+
+/* =========================
    RESET DATA ON FIRST LOAD OF TAB
 ========================= */
 if (!sessionStorage.getItem("healthtrackSessionStarted")) {
@@ -111,34 +241,34 @@ document.addEventListener("DOMContentLoaded", () => {
       return bmiRounded;
     }
 
-    function fillInputsFromSavedProfile() {
-      const savedProfile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-
-      if (savedProfile.fullName) fullNameInput.value = savedProfile.fullName;
-      if (savedProfile.age) ageInput.value = savedProfile.age;
-      if (savedProfile.weight) weightInput.value = savedProfile.weight;
-      if (savedProfile.height) heightInput.value = savedProfile.height;
+    async function fillInputsFromSavedProfile() {
+      const savedProfile = await loadProfileFromSupabase();
+    
+      if (savedProfile?.fullName) fullNameInput.value = savedProfile.fullName;
+      if (savedProfile?.age) ageInput.value = savedProfile.age;
+      if (savedProfile?.weight) weightInput.value = savedProfile.weight;
+      if (savedProfile?.height) heightInput.value = savedProfile.height;
     }
 
     resetBMIUI();
     fillInputsFromSavedProfile();
 
-    profileForm.addEventListener("submit", (event) => {
+    profileForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-
+    
       const fullName = fullNameInput.value.trim();
       const age = Number(ageInput.value);
       const weight = Number(weightInput.value);
       const height = Number(heightInput.value);
-
+    
       if (!allFieldsFilled(fullName, age, weight, height)) {
         resetBMIUI();
         profileMessage.textContent = "Please fill in all 4 fields correctly.";
         return;
       }
-
+    
       const bmi = updateBMIUI(weight, height);
-
+    
       const profileData = {
         fullName,
         age,
@@ -146,14 +276,22 @@ document.addEventListener("DOMContentLoaded", () => {
         height,
         bmi
       };
-
+    
       localStorage.setItem("healthtrackProfile", JSON.stringify(profileData));
-
+    
       const todayData = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
       todayData.bmi = bmi;
       localStorage.setItem("healthtrackToday", JSON.stringify(todayData));
-
-      profileMessage.textContent = "Profile saved successfully.";
+    
+      profileMessage.textContent = "Saving profile...";
+    
+      const saved = await saveProfileToSupabase(profileData);
+    
+      if (saved) {
+        profileMessage.textContent = "Profile saved successfully.";
+      } else {
+        profileMessage.textContent = "Profile saved locally, but database save failed.";
+      }
     });
   }
 
@@ -419,9 +557,9 @@ document.addEventListener("DOMContentLoaded", () => {
       updateWorkoutUI();
       workoutCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    function saveActivityResults() {
+    async function saveActivityResults() {
       const selectedWorkout = workouts[generatedIntensity];
-
+    
       resultSteps.textContent = selectedWorkout.results.steps.toLocaleString();
       resultHeartRate.textContent = selectedWorkout.results.heartRate;
       resultCalories.textContent = selectedWorkout.results.calories;
@@ -430,7 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
       activityFeedbackText.textContent = selectedWorkout.results.feedback;
       resultDistance.textContent = selectedWorkout.results.distance;
       resultExercisesCompleted.textContent = `${generatedExercises.length} exercises`;
-
+    
       const todayData = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
       todayData.steps = selectedWorkout.results.steps;
       todayData.heartRate = selectedWorkout.results.heartRate;
@@ -438,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
       todayData.bmi = profile.bmi || null;
       todayData.intensity = selectedWorkout.label;
       localStorage.setItem("healthtrackToday", JSON.stringify(todayData));
-
+    
       const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
       historyData.unshift({
         date: new Date().toISOString(),
@@ -448,19 +586,32 @@ document.addEventListener("DOMContentLoaded", () => {
         calories: selectedWorkout.results.calories,
         bmi: profile.bmi || null,
         distance: selectedWorkout.results.distance,
-        exercisesCompleted: generatedExercises.length
+        exercisesCompleted: generatedExercises.length,
+        feedback: selectedWorkout.results.feedback
       });
       localStorage.setItem("healthtrackHistory", JSON.stringify(historyData));
+    
+      await saveActivityToSupabase({
+        activityDate: new Date().toISOString().slice(0, 10),
+        intensity: selectedWorkout.label,
+        steps: selectedWorkout.results.steps,
+        heartRate: selectedWorkout.results.heartRate,
+        calories: selectedWorkout.results.calories,
+        bmi: profile.bmi || null,
+        distanceKm: Number(selectedWorkout.results.distance),
+        exercisesCompleted: generatedExercises.length,
+        feedback: selectedWorkout.results.feedback
+      });
     }
 
-    function completeWorkout() {
+    async function completeWorkout() {
       const allDone =
         generatedExercises.length > 0 &&
         generatedExercises.every((exercise) => exercise.done);
     
       if (!allDone) return;
     
-      saveActivityResults();
+      await saveActivityResults();
     
       activitySuccessCard.classList.remove("hidden");
       activityResultsCard.classList.remove("hidden");
@@ -479,9 +630,9 @@ document.addEventListener("DOMContentLoaded", () => {
     resetWorkoutBtn.addEventListener("click", resetWorkout);
     startAnotherWorkoutBtn.addEventListener("click", resetWorkout);
 
-    completeWorkoutBtn.addEventListener("click", () => {
+    completeWorkoutBtn.addEventListener("click", async () => {
       if (completeWorkoutBtn.classList.contains("disabled")) return;
-      completeWorkout();
+      await completeWorkout();
     });
 
     resetCurrentWorkoutState();
