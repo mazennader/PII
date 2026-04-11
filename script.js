@@ -83,25 +83,37 @@ async function loadProfileFromSupabase() {
 
 async function saveActivityToSupabase(activityData) {
   const user = await ensureAnonymousUser();
+  console.log("Anonymous user for activity save:", user);
+
   if (!user) return false;
 
-  const { error } = await supabaseClient
+  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
+
+  const payload = {
+    user_id: user.id,
+    full_name: profile.fullName || "Guest",
+    activity_date: activityData.activityDate,
+    intensity: activityData.intensity,
+    steps: activityData.steps,
+    heart_rate: activityData.heartRate,
+    calories: activityData.calories,
+    bmi: activityData.bmi,
+    distance_km: activityData.distanceKm,
+    exercises_completed: activityData.exercisesCompleted,
+    feedback: activityData.feedback
+  };
+
+  console.log("Activity payload:", payload);
+
+  const { data, error } = await supabaseClient
     .from("activity_logs")
-    .insert({
-      user_id: user.id,
-      activity_date: activityData.activityDate,
-      intensity: activityData.intensity,
-      steps: activityData.steps,
-      heart_rate: activityData.heartRate,
-      calories: activityData.calories,
-      bmi: activityData.bmi,
-      distance_km: activityData.distanceKm,
-      exercises_completed: activityData.exercisesCompleted,
-      feedback: activityData.feedback
-    });
+    .insert(payload)
+    .select();
+
+  console.log("Activity save response:", data);
 
   if (error) {
-    console.error("Activity save error:", error);
+    console.error("Activity save error full:", error);
     return false;
   }
 
@@ -305,73 +317,94 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------------------------
-     DASHBOARD PAGE
-  --------------------------- */
-  const dashboardUserName = document.getElementById("dashboardUserName");
+   DASHBOARD PAGE
+--------------------------- */
+const dashboardUserName = document.getElementById("dashboardUserName");
 
-  if (dashboardUserName) {
-    const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-    const activity = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
+if (dashboardUserName) {
+  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
+  const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
 
-    const steps = Number(activity.steps ?? 0);
-    const heartRate = activity.heartRate ? Number(activity.heartRate) : null;
-    const calories = Number(activity.calories ?? 0);
-    const bmi = activity.bmi ? Number(activity.bmi) : null;
+  const todayKey = new Date().toISOString().slice(0, 10);
 
-    const stepGoal = 10000;
-    const progressPercent = Math.min((steps / stepGoal) * 100, 100);
+  const todayEntries = historyData.filter((item) => {
+    const itemDay = String(item.date).slice(0, 10);
+    return itemDay === todayKey;
+  });
 
-    dashboardUserName.textContent = profile.fullName || "Guest";
+  const steps = todayEntries.reduce((sum, item) => sum + Number(item.steps || 0), 0);
+  const calories = todayEntries.reduce((sum, item) => sum + Number(item.calories || 0), 0);
 
-    const dailyStepsValue = document.getElementById("dailyStepsValue");
-    const heartRateValue = document.getElementById("heartRateValue");
-    const caloriesValue = document.getElementById("caloriesValue");
-    const bmiValue = document.getElementById("bmiValue");
-    const stepsProgressText = document.getElementById("stepsProgressText");
-    const stepsPercentText = document.getElementById("stepsPercentText");
-    const stepsProgressBar = document.getElementById("stepsProgressBar");
-    const summaryHeart = document.getElementById("summaryHeart");
-    const summaryCaloriesPerStep = document.getElementById("summaryCaloriesPerStep");
-    const summaryDistance = document.getElementById("summaryDistance");
-    const summaryActivityLevel = document.getElementById("summaryActivityLevel");
-    const feedbackTitle = document.getElementById("feedbackTitle");
-    const feedbackTip = document.getElementById("feedbackTip");
+  const heartValues = todayEntries
+    .map((item) => Number(item.heartRate || 0))
+    .filter((value) => value > 0);
 
-    if (dailyStepsValue) dailyStepsValue.textContent = steps.toLocaleString();
-    if (heartRateValue) heartRateValue.textContent = heartRate ? `${heartRate} bpm` : "-- bpm";
-    if (caloriesValue) caloriesValue.textContent = calories.toLocaleString();
-    if (bmiValue) bmiValue.textContent = bmi ? bmi.toFixed(1) : "--";
+  const bmiValues = todayEntries
+    .map((item) => Number(item.bmi || 0))
+    .filter((value) => value > 0);
 
-    if (stepsProgressText) stepsProgressText.textContent = steps.toLocaleString();
-    if (stepsPercentText) stepsPercentText.textContent = Math.round(progressPercent);
-    if (stepsProgressBar) stepsProgressBar.style.width = `${progressPercent}%`;
+  const heartRate = heartValues.length
+    ? Math.round(heartValues.reduce((sum, value) => sum + value, 0) / heartValues.length)
+    : null;
 
-    const avgHeart = heartRate ? `${heartRate} bpm` : "No data";
-    const caloriesPerStep = steps > 0 ? (calories / steps).toFixed(2) : "0.00";
-    const distanceKm = (steps * 0.0008).toFixed(1);
+  const bmi = bmiValues.length
+    ? (bmiValues.reduce((sum, value) => sum + value, 0) / bmiValues.length)
+    : (profile.bmi ? Number(profile.bmi) : null);
 
-    let activityLevel = "Low";
-    if (steps >= 8000) activityLevel = "High";
-    else if (steps >= 4000) activityLevel = "Moderate";
+  const stepGoal = 10000;
+  const progressPercent = Math.min((steps / stepGoal) * 100, 100);
 
-    if (summaryHeart) summaryHeart.textContent = avgHeart;
-    if (summaryCaloriesPerStep) summaryCaloriesPerStep.textContent = caloriesPerStep;
-    if (summaryDistance) summaryDistance.textContent = distanceKm;
-    if (summaryActivityLevel) summaryActivityLevel.textContent = activityLevel;
+  dashboardUserName.textContent = profile.fullName || "Guest";
 
-    if (feedbackTitle && feedbackTip) {
-      if (steps >= 10000) {
-        feedbackTitle.textContent = "Excellent Work - You've reached your daily goal!";
-        feedbackTip.textContent = "Tip: Keep this consistency going to support your long-term health and fitness progress.";
-      } else if (steps >= 5000) {
-        feedbackTitle.textContent = "Good Progress - You're on the right track!";
-        feedbackTip.textContent = "Tip: A short walk later today can help you get even closer to your daily target.";
-      } else {
-        feedbackTitle.textContent = "Need More Activity - Keep moving to reach your goal!";
-        feedbackTip.textContent = "Tip: Regular physical activity helps maintain cardiovascular health and supports overall wellness.";
-      }
+  const dailyStepsValue = document.getElementById("dailyStepsValue");
+  const heartRateValue = document.getElementById("heartRateValue");
+  const caloriesValue = document.getElementById("caloriesValue");
+  const bmiValue = document.getElementById("bmiValue");
+  const stepsProgressText = document.getElementById("stepsProgressText");
+  const stepsPercentText = document.getElementById("stepsPercentText");
+  const stepsProgressBar = document.getElementById("stepsProgressBar");
+  const summaryHeart = document.getElementById("summaryHeart");
+  const summaryCaloriesPerStep = document.getElementById("summaryCaloriesPerStep");
+  const summaryDistance = document.getElementById("summaryDistance");
+  const summaryActivityLevel = document.getElementById("summaryActivityLevel");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackTip = document.getElementById("feedbackTip");
+
+  if (dailyStepsValue) dailyStepsValue.textContent = steps.toLocaleString();
+  if (heartRateValue) heartRateValue.textContent = heartRate ? `${heartRate} bpm` : "-- bpm";
+  if (caloriesValue) caloriesValue.textContent = calories.toLocaleString();
+  if (bmiValue) bmiValue.textContent = bmi ? bmi.toFixed(1) : "--";
+
+  if (stepsProgressText) stepsProgressText.textContent = steps.toLocaleString();
+  if (stepsPercentText) stepsPercentText.textContent = Math.round(progressPercent);
+  if (stepsProgressBar) stepsProgressBar.style.width = `${progressPercent}%`;
+
+  const avgHeart = heartRate ? `${heartRate} bpm` : "No data";
+  const caloriesPerStep = steps > 0 ? (calories / steps).toFixed(2) : "0.00";
+  const distanceKm = (steps * 0.0008).toFixed(1);
+
+  let activityLevel = "Low";
+  if (steps >= 8000) activityLevel = "High";
+  else if (steps >= 4000) activityLevel = "Moderate";
+
+  if (summaryHeart) summaryHeart.textContent = avgHeart;
+  if (summaryCaloriesPerStep) summaryCaloriesPerStep.textContent = caloriesPerStep;
+  if (summaryDistance) summaryDistance.textContent = `${distanceKm} km`;
+  if (summaryActivityLevel) summaryActivityLevel.textContent = activityLevel;
+
+  if (feedbackTitle && feedbackTip) {
+    if (steps >= 10000) {
+      feedbackTitle.textContent = "Excellent Work - You've reached your daily goal!";
+      feedbackTip.textContent = "Tip: Keep this consistency going to support your long-term health and fitness progress.";
+    } else if (steps >= 5000) {
+      feedbackTitle.textContent = "Good Progress - You're on the right track!";
+      feedbackTip.textContent = "Tip: A short walk later today can help you get even closer to your daily target.";
+    } else {
+      feedbackTitle.textContent = "Need More Activity - Keep moving to reach your goal!";
+      feedbackTip.textContent = "Tip: Regular physical activity helps maintain cardiovascular health and supports overall wellness.";
     }
   }
+}
 
   /* ---------------------------
      LOG ACTIVITY PAGE
@@ -600,7 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       localStorage.setItem("healthtrackHistory", JSON.stringify(historyData));
     
-      await saveActivityToSupabase({
+      const activitySaved = await saveActivityToSupabase({
         activityDate: new Date().toISOString().slice(0, 10),
         intensity: selectedWorkout.label,
         steps: selectedWorkout.results.steps,
@@ -611,6 +644,10 @@ document.addEventListener("DOMContentLoaded", () => {
         exercisesCompleted: generatedExercises.length,
         feedback: selectedWorkout.results.feedback
       });
+      
+      if (!activitySaved) {
+        console.error("Activity saved locally, but database save failed.");
+      }
     }
 
     async function completeWorkout() {
