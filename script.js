@@ -607,7 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
         heartRate: selectedWorkout.results.heartRate,
         calories: selectedWorkout.results.calories,
         bmi: profile.bmi || null,
-        distanceKm: Number(selectedWorkout.results.distance),
+        distanceKm: parseFloat(selectedWorkout.results.distance),
         exercisesCompleted: generatedExercises.length,
         feedback: selectedWorkout.results.feedback
       });
