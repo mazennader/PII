@@ -25,9 +25,15 @@ async function ensureAnonymousUser() {
 
 async function saveProfileToSupabase(profileData) {
   const user = await ensureAnonymousUser();
-  if (!user) return false;
 
-  const { error } = await supabaseClient
+  console.log("Anonymous user for profile save:", user);
+
+  if (!user) {
+    console.error("No anonymous user found.");
+    return false;
+  }
+
+  const { data, error } = await supabaseClient
     .from("profiles")
     .upsert({
       id: user.id,
@@ -36,10 +42,13 @@ async function saveProfileToSupabase(profileData) {
       weight_kg: profileData.weight,
       height_cm: profileData.height,
       bmi: profileData.bmi
-    });
+    })
+    .select();
+
+  console.log("Profile save response data:", data);
 
   if (error) {
-    console.error("Profile save error:", error);
+    console.error("Profile save error full:", error);
     return false;
   }
 
