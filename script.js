@@ -1,35 +1,24 @@
 /* =========================
-   SUPABASE ANONYMOUS USER
+   SUPABASE AUTH USER
 ========================= */
-async function ensureAnonymousUser() {
-  const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
-
-  if (sessionError) {
-    console.error("Session error:", sessionError);
-    return null;
-  }
-
-  if (sessionData.session && sessionData.session.user) {
-    return sessionData.session.user;
-  }
-
-  const { data, error } = await supabaseClient.auth.signInAnonymously();
+async function getCurrentUser() {
+  const { data, error } = await supabaseClient.auth.getUser();
 
   if (error) {
-    console.error("Anonymous sign-in error:", error);
+    console.error("Get user error:", error);
     return null;
   }
 
-  return data.user;
+  return data.user || null;
 }
 
 async function saveProfileToSupabase(profileData) {
-  const user = await ensureAnonymousUser();
+  const user = await getCurrentUser();
 
-  console.log("Anonymous user for profile save:", user);
+  console.log("Logged in user for profile save:", user);
 
   if (!user) {
-    console.error("No anonymous user found.");
+    console.error("No logged in user found.");
     return false;
   }
 
@@ -56,7 +45,7 @@ async function saveProfileToSupabase(profileData) {
 }
 
 async function loadProfileFromSupabase() {
-  const user = await ensureAnonymousUser();
+  const user = await getCurrentUser();
   if (!user) return null;
 
   const { data, error } = await supabaseClient
@@ -82,16 +71,16 @@ async function loadProfileFromSupabase() {
 }
 
 async function saveActivityToSupabase(activityData) {
-  const user = await ensureAnonymousUser();
-  console.log("Anonymous user for activity save:", user);
+  const user = await getCurrentUser();
+  console.log("Logged in user for activity save:", user);
 
   if (!user) return false;
 
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
+  const profile = await loadProfileFromSupabase();
 
   const payload = {
     user_id: user.id,
-    full_name: profile.fullName || "Guest",
+    full_name: profile?.fullName || "Guest",
     activity_date: activityData.activityDate,
     intensity: activityData.intensity,
     steps: activityData.steps,
@@ -121,7 +110,7 @@ async function saveActivityToSupabase(activityData) {
 }
 
 async function loadActivityHistoryFromSupabase() {
-  const user = await ensureAnonymousUser();
+  const user = await getCurrentUser();
   if (!user) return [];
 
   const { data, error } = await supabaseClient
@@ -149,16 +138,13 @@ async function loadActivityHistoryFromSupabase() {
   }));
 }
 
-/* =========================
-   RESET DATA ON FIRST LOAD OF TAB
-========================= */
-if (!sessionStorage.getItem("healthtrackSessionStarted")) {
-  localStorage.removeItem("healthtrackProfile");
-  localStorage.removeItem("healthtrackToday");
-  localStorage.removeItem("healthtrackHistory");
-  sessionStorage.setItem("healthtrackSessionStarted", "true");
-}
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
   /* ---------------------------
      PROFILE PAGE
   --------------------------- */
@@ -265,10 +251,19 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fillInputsFromSavedProfile() {
       const savedProfile = await loadProfileFromSupabase();
     
-      if (savedProfile?.fullName) fullNameInput.value = savedProfile.fullName;
-      if (savedProfile?.age) ageInput.value = savedProfile.age;
-      if (savedProfile?.weight) weightInput.value = savedProfile.weight;
-      if (savedProfile?.height) heightInput.value = savedProfile.height;
+      if (!savedProfile) {
+        resetBMIUI();
+        return;
+      }
+    
+      if (savedProfile.fullName) fullNameInput.value = savedProfile.fullName;
+      if (savedProfile.age) ageInput.value = savedProfile.age;
+      if (savedProfile.weight) weightInput.value = savedProfile.weight;
+      if (savedProfile.height) heightInput.value = savedProfile.height;
+    
+      if (savedProfile.weight && savedProfile.height) {
+        updateBMIUI(Number(savedProfile.weight), Number(savedProfile.height));
+      }
     }
 
     resetBMIUI();
@@ -298,11 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bmi
       };
     
-      localStorage.setItem("healthtrackProfile", JSON.stringify(profileData));
-    
-      const todayData = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
-      todayData.bmi = bmi;
-      localStorage.setItem("healthtrackToday", JSON.stringify(todayData));
+      // Profile is now saved in Supabase for the logged-in user
     
       profileMessage.textContent = "Saving profile...";
     
@@ -311,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (saved) {
         profileMessage.textContent = "Profile saved successfully.";
       } else {
-        profileMessage.textContent = "Profile saved locally, but database save failed.";
+        profileMessage.textContent = "Profile save failed. Please try again.";
       }
     });
   }
@@ -322,8 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
 const dashboardUserName = document.getElementById("dashboardUserName");
 
 if (dashboardUserName) {
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-  const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
+  const profile = await loadProfileFromSupabase() || {};
+  const historyData = await loadActivityHistoryFromSupabase();
 
   const todayKey = new Date().toISOString().slice(0, 10);
 
@@ -412,7 +403,7 @@ if (dashboardUserName) {
   const generateWorkoutBtn = document.getElementById("generateWorkoutBtn");
 
   if (generateWorkoutBtn) {
-    const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
+    const profile = await loadProfileFromSupabase() || {};
     const profileBMI = profile.bmi ? Number(profile.bmi).toFixed(1) : "--";
     const displayName = profile.fullName || "Guest";
     const displayAvatar = displayName.trim().charAt(0).toUpperCase();
@@ -611,27 +602,7 @@ if (dashboardUserName) {
       resultDistance.textContent = selectedWorkout.results.distance;
       resultExercisesCompleted.textContent = `${generatedExercises.length} exercises`;
     
-      const todayData = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
-      todayData.steps = selectedWorkout.results.steps;
-      todayData.heartRate = selectedWorkout.results.heartRate;
-      todayData.calories = selectedWorkout.results.calories;
-      todayData.bmi = profile.bmi || null;
-      todayData.intensity = selectedWorkout.label;
-      localStorage.setItem("healthtrackToday", JSON.stringify(todayData));
-    
-      const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
-      historyData.unshift({
-        date: new Date().toISOString(),
-        intensity: selectedWorkout.label,
-        steps: selectedWorkout.results.steps,
-        heartRate: selectedWorkout.results.heartRate,
-        calories: selectedWorkout.results.calories,
-        bmi: profile.bmi || null,
-        distance: selectedWorkout.results.distance,
-        exercisesCompleted: generatedExercises.length,
-        feedback: selectedWorkout.results.feedback
-      });
-      localStorage.setItem("healthtrackHistory", JSON.stringify(historyData));
+      // Activity is now saved in Supabase for the logged-in user only
     
       const activitySaved = await saveActivityToSupabase({
         activityDate: new Date().toISOString().slice(0, 10),
@@ -646,7 +617,7 @@ if (dashboardUserName) {
       });
       
       if (!activitySaved) {
-        console.error("Activity saved locally, but database save failed.");
+        console.error("Activity save failed in database.");
       }
     }
 
@@ -687,12 +658,12 @@ if (dashboardUserName) {
 /* ---------------------------
    HISTORY PAGE
 --------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const historyUserName = document.getElementById("historyUserName");
   if (!historyUserName) return;
 
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-  const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
+  const profile = await loadProfileFromSupabase() || {};
+  const historyData = await loadActivityHistoryFromSupabase();
 
   const userName = profile.fullName || "Guest";
   const userAvatar = userName.trim() ? userName.trim().charAt(0).toUpperCase() : "U";
@@ -800,13 +771,12 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ---------------------------
    RECOMMENDATIONS PAGE
 --------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const recommendUserName = document.getElementById("recommendUserName");
   if (!recommendUserName) return;
 
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-  const todayData = JSON.parse(localStorage.getItem("healthtrackToday")) || {};
-  const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
+  const profile = await loadProfileFromSupabase() || {};
+  const historyData = await loadActivityHistoryFromSupabase();
 
   const userName = profile.fullName || "Guest";
   const firstName = userName.trim().split(" ")[0] || "User";
@@ -819,9 +789,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const age = Number(profile.age || 0);
   const bmi = Number(profile.bmi || 0);
   const avgSteps =
-    historyData.length > 0
-      ? Math.round(historyData.reduce((sum, item) => sum + Number(item.steps || 0), 0) / historyData.length)
-      : Number(todayData.steps || 0);
+  historyData.length > 0
+    ? Math.round(historyData.reduce((sum, item) => sum + Number(item.steps || 0), 0) / historyData.length)
+    : 0;
 
   let planTitle = "Balanced Fitness Plan";
   let planSubtitle = "A personalized plan designed to match your profile and support steady progress.";
@@ -978,12 +948,12 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ---------------------------
    ANALYTICS PAGE
 --------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const analyticsUserName = document.getElementById("analyticsUserName");
   if (!analyticsUserName) return;
 
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
-  const historyData = JSON.parse(localStorage.getItem("healthtrackHistory")) || [];
+  const profile = await loadProfileFromSupabase() || {};
+  const historyData = await loadActivityHistoryFromSupabase();
 
   const userName = profile.fullName || "Guest";
   const avatar = userName.trim() ? userName.trim().charAt(0).toUpperCase() : "U";
@@ -1306,11 +1276,11 @@ const last14 = Object.values(groupedByDay)
 /* ---------------------------
    ABOUT PAGE
 --------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const aboutUserName = document.getElementById("aboutUserName");
   if (!aboutUserName) return;
 
-  const profile = JSON.parse(localStorage.getItem("healthtrackProfile")) || {};
+  const profile = await loadProfileFromSupabase() || {};
   const userName = profile.fullName || "Guest";
   const avatar = userName.trim() ? userName.trim().charAt(0).toUpperCase() : "G";
 
