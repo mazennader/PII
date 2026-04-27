@@ -1,57 +1,89 @@
 /* =========================
-   SUPABASE AUTH USER
+   NAME-BASED PROFILE SYSTEM
 ========================= */
-async function getCurrentUser() {
-  const { data, error } = await supabaseClient.auth.getUser();
+
+function getActiveProfileId() {
+  return sessionStorage.getItem("activeProfileId");
+}
+
+function setActiveProfile(profile) {
+  sessionStorage.setItem("activeProfileId", profile.id);
+  sessionStorage.setItem("activeProfileName", profile.full_name);
+}
+
+async function findProfileByName(fullName) {
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .ilike("full_name", fullName.trim())
+    .limit(1)
+    .maybeSingle();
 
   if (error) {
-    console.error("Get user error:", error);
+    console.error("Find profile error:", error);
     return null;
   }
 
-  return data.user || null;
+  return data;
 }
 
 async function saveProfileToSupabase(profileData) {
-  const user = await getCurrentUser();
+  const existingProfile = await findProfileByName(profileData.fullName);
 
-  console.log("Logged in user for profile save:", user);
+  if (existingProfile) {
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .update({
+        full_name: profileData.fullName,
+        age: profileData.age,
+        weight_kg: profileData.weight,
+        height_cm: profileData.height,
+        bmi: profileData.bmi,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existingProfile.id)
+      .select()
+      .single();
 
-  if (!user) {
-    console.error("No logged in user found.");
-    return false;
+    if (error) {
+      console.error("Profile update error:", error);
+      return false;
+    }
+
+    setActiveProfile(data);
+    return true;
   }
 
   const { data, error } = await supabaseClient
     .from("profiles")
-    .upsert({
-      id: user.id,
+    .insert({
       full_name: profileData.fullName,
       age: profileData.age,
       weight_kg: profileData.weight,
       height_cm: profileData.height,
       bmi: profileData.bmi
     })
-    .select();
-
-  console.log("Profile save response data:", data);
+    .select()
+    .single();
 
   if (error) {
-    console.error("Profile save error full:", error);
+    console.error("Profile create error:", error);
     return false;
   }
 
+  setActiveProfile(data);
   return true;
 }
 
 async function loadProfileFromSupabase() {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  const profileId = getActiveProfileId();
+
+  if (!profileId) return null;
 
   const { data, error } = await supabaseClient
     .from("profiles")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", profileId)
     .maybeSingle();
 
   if (error) {
@@ -62,6 +94,7 @@ async function loadProfileFromSupabase() {
   if (!data) return null;
 
   return {
+    id: data.id,
     fullName: data.full_name || "",
     age: data.age || "",
     weight: data.weight_kg || "",
@@ -71,38 +104,32 @@ async function loadProfileFromSupabase() {
 }
 
 async function saveActivityToSupabase(activityData) {
-  const user = await getCurrentUser();
-  console.log("Logged in user for activity save:", user);
-
-  if (!user) return false;
-
   const profile = await loadProfileFromSupabase();
 
-  const payload = {
-    user_id: user.id,
-    full_name: profile?.fullName || "Guest",
-    activity_date: activityData.activityDate,
-    intensity: activityData.intensity,
-    steps: activityData.steps,
-    heart_rate: activityData.heartRate,
-    calories: activityData.calories,
-    bmi: activityData.bmi,
-    distance_km: activityData.distanceKm,
-    exercises_completed: activityData.exercisesCompleted,
-    feedback: activityData.feedback
-  };
+  if (!profile?.id) {
+    alert("Please enter and save your profile name first.");
+    window.location.href = "profile.html";
+    return false;
+  }
 
-  console.log("Activity payload:", payload);
-
-  const { data, error } = await supabaseClient
+  const { error } = await supabaseClient
     .from("activity_logs")
-    .insert(payload)
-    .select();
-
-  console.log("Activity save response:", data);
+    .insert({
+      user_id: profile.id,
+      full_name: profile.fullName || "Guest",
+      activity_date: activityData.activityDate,
+      intensity: activityData.intensity,
+      steps: activityData.steps,
+      heart_rate: activityData.heartRate,
+      calories: activityData.calories,
+      bmi: activityData.bmi,
+      distance_km: activityData.distanceKm,
+      exercises_completed: activityData.exercisesCompleted,
+      feedback: activityData.feedback
+    });
 
   if (error) {
-    console.error("Activity save error full:", error);
+    console.error("Activity save error:", error);
     return false;
   }
 
@@ -110,13 +137,14 @@ async function saveActivityToSupabase(activityData) {
 }
 
 async function loadActivityHistoryFromSupabase() {
-  const user = await getCurrentUser();
-  if (!user) return [];
+  const profileId = getActiveProfileId();
+
+  if (!profileId) return [];
 
   const { data, error } = await supabaseClient
     .from("activity_logs")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", profileId)
     .order("activity_date", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -139,10 +167,10 @@ async function loadActivityHistoryFromSupabase() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const user = await getCurrentUser();
+  const isProfilePage = document.getElementById("profileForm");
 
-  if (!user) {
-    window.location.href = "login.html";
+  if (!isProfilePage && !getActiveProfileId()) {
+    window.location.href = "profile.html";
     return;
   }
   /* ---------------------------
